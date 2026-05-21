@@ -10,7 +10,7 @@ open index.html
 ```
 Or double-click `index.html` in your file manager. Works in any modern browser without a server.
 
-**Option 2 — Local dev server (if you prefer)**
+**Option 2 — Local dev server**
 ```bash
 npx serve .
 # then open http://localhost:3000
@@ -30,8 +30,8 @@ Vanilla HTML, CSS, and JavaScript — no frameworks, no bundler.
 ## Project structure
 
 ```
-tip-calculator/
-├── index.html      # Everything: markup, styles, logic
+Splitease-tip-calculator/
+├── index.html     
 └── README.md
 └── ANSWERS.md
 ```
