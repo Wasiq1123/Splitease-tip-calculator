@@ -2,6 +2,7 @@
 
 A single-screen, live-updating tip calculator and bill splitter. No frameworks, no build step, no dependencies. Just open the file.
 
+---
 
 ## How to run locally
 
@@ -24,6 +25,7 @@ python3 -m http.server 8080
 
 No `npm install` needed. No build step. No environment variables.
 
+---
 
 ## Stack
 
