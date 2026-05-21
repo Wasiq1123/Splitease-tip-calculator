@@ -2,7 +2,6 @@
 
 A single-screen, live-updating tip calculator and bill splitter. No frameworks, no build step, no dependencies. Just open the file.
 
----
 
 ## How to run locally
 
