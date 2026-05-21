@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SplitEase — Tip Calculator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f5f3ee;
+      --surface: #ffffff;
+      --surface2: #f0ede6;
+      --ink: #1a1814;
+      --ink2: #6b6760;
+      --ink3: #a8a49f;
+      --accent: #c8440e;
+      --accent-light: #fdf0eb;
+      --accent-mid: #f4c5b0;
+      --success: #1a6b3c;
+      --success-bg: #eaf5ef;
+      --border: #e2dfd8;
+      --border-strong: #c8c4be;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --shadow: 0 2px 8px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
+    }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .page {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 2.5rem;
+    }
+
+    .wordmark {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 800;
+      line-height: 1.05;
+      color: var(--ink);
+      margin-top: 0.3rem;
+    }
+
+    h1 span {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--ink2);
+      margin-top: 0.5rem;
+      font-weight: 400;
+    }
+
+    /* Layout */
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    @media (max-width: 620px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* Card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink3);
+      margin-bottom: 1.25rem;
+    }
+
+    /* Fields */
+    .field {
+      margin-bottom: 1.25rem;
+    }
+
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--ink2);
+      margin-bottom: 0.4rem;
+    }
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .prefix {
+      position: absolute;
+      left: 0.9rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--ink3);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    input[type="number"], input[type="text"] {
+      width: 100%;
+      height: 48px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--ink);
+      font-family: 'DM Mono', monospace;
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 0 1rem;
+      transition: border-color 0.18s, box-shadow 0.18s;
+      -moz-appearance: textfield;
+      appearance: textfield;
+      outline: none;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+    .has-prefix input { padding-left: 2rem; }
+
+    input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(200,68,14,0.12);
+    }
+
+    input.error-field {
+      border-color: #c0392b;
+      box-shadow: 0 0 0 3px rgba(192,57,43,0.10);
+    }
+
+    .error-msg {
+      font-size: 0.78rem;
+      color: #c0392b;
+      margin-top: 0.35rem;
+      font-weight: 600;
+      display: none;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    .error-msg.visible { display: flex; }
+
+    /* Tip presets */
+    .tip-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) 1fr;
+      gap: 0.5rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .tip-btn {
+      height: 44px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      color: var(--ink2);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tip-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+    }
+
+    .tip-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .tip-btn.custom-btn {
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+    }
+
+    .custom-tip-wrap {
+      display: none;
+      position: relative;
+      align-items: center;
+    }
+
+    .custom-tip-wrap.visible { display: flex; }
+    .custom-tip-wrap .suffix {
+      position: absolute;
+      right: 0.9rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--ink3);
+    }
+
+    /* People stepper */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      height: 48px;
+    }
+
+    .stepper-btn {
+      width: 48px;
+      height: 100%;
+      border: none;
+      background: var(--surface2);
+      color: var(--ink);
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background 0.15s;
+      flex-shrink: 0;
+      font-family: 'Syne', sans-serif;
+    }
+
+    .stepper-btn:hover { background: var(--accent-light); color: var(--accent); }
+    .stepper-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .stepper input {
+      flex: 1;
+      height: 100%;
+      border: none;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      border-radius: 0;
+      text-align: center;
+      box-shadow: none;
+    }
+
+    .stepper input:focus { box-shadow: none; border-color: var(--border); }
+
+    /* Result panel */
+    .result-card {
+      background: var(--ink);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      color: #fff;
+      position: sticky;
+      top: 1.5rem;
+    }
+
+    .result-card .card-title {
+      color: rgba(255,255,255,0.4);
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .result-row:last-of-type { border-bottom: none; }
+
+    .result-label {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.55);
+      font-weight: 600;
+    }
+
+    .result-value {
+      font-family: 'DM Mono', monospace;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #fff;
+      transition: color 0.2s;
+    }
+
+    /* Big per-person */
+    .per-person-block {
+      background: var(--accent);
+      border-radius: var(--radius-sm);
+      padding: 1.25rem 1rem;
+      text-align: center;
+      margin-top: 1.25rem;
+    }
+
+    .per-person-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 0.3rem;
+    }
+
+    .per-person-amount {
+      font-family: 'DM Mono', monospace;
+      font-size: 2.4rem;
+      font-weight: 500;
+      color: #fff;
+      line-height: 1;
+      transition: all 0.18s;
+    }
+
+    .per-person-sub {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.6);
+      margin-top: 0.3rem;
+    }
+
+    /* Empty state */
+    .empty-hint {
+      text-align: center;
+      padding: 1rem 0 0.5rem;
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* Reset button */
+    .reset-btn {
+      width: 100%;
+      margin-top: 1.25rem;
+      height: 42px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .reset-btn:hover {
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border-color: rgba(255,255,255,0.35);
+    }
+
+    /* Rounding note */
+    .rounding-note {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 0.75rem;
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--ink3);
+    }
+
+    /* Animate values */
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .pop { animation: pop 0.18s ease-out; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="wordmark">SplitEase</div>
+      <h1>Split the bill,<br /><span>not the mood.</span></h1>
+      <p class="subtitle">Enter your bill and split it in seconds — no button needed.</p>
+    </header>
+
+    <div class="layout">
+      <!-- LEFT: Inputs -->
+      <div>
+        <div class="card">
+          <div class="card-title">Bill Details</div>
+
+          <!-- Bill Amount -->
+          <div class="field">
+            <label for="bill">Bill Amount</label>
+            <div class="input-wrap has-prefix">
+              <span class="prefix">Rs</span>
+              <input
+                type="number"
+                id="bill"
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                aria-describedby="bill-error"
+                autocomplete="off"
+              />
+            </div>
+            <div class="error-msg" id="bill-error" role="alert" aria-live="polite">
+              ⚠ Enter a positive bill amount
+            </div>
+          </div>
+
+          <!-- Tip -->
+          <div class="field">
+            <label>Tip Percentage</label>
+            <div class="tip-row">
+              <button class="tip-btn" data-tip="10" aria-pressed="false">10%</button>
+              <button class="tip-btn" data-tip="15" aria-pressed="false">15%</button>
+              <button class="tip-btn" data-tip="20" aria-pressed="false">20%</button>
+              <button class="tip-btn custom-btn" id="custom-toggle" aria-pressed="false">Custom</button>
+            </div>
+            <div class="custom-tip-wrap" id="custom-tip-wrap">
+              <div class="input-wrap" style="width:100%; position:relative;">
+                <input
+                  type="number"
+                  id="tip-custom"
+                  placeholder="Enter %"
+                  min="0"
+                  max="100"
+                  step="0.5"
+                  aria-describedby="tip-error"
+                  autocomplete="off"
+                />
+                <span class="suffix">%</span>
+              </div>
+            </div>
+            <div class="error-msg" id="tip-error" role="alert" aria-live="polite">
+              ⚠ Tip must be between 0% and 100%
+            </div>
+          </div>
+
+          <!-- People -->
+          <div class="field">
+            <label for="people">Number of People</label>
+            <div class="stepper" role="group" aria-label="Number of people">
+              <button class="stepper-btn" id="people-dec" aria-label="Decrease people" disabled>−</button>
+              <input
+                type="number"
+                id="people"
+                value="1"
+                min="1"
+                max="99"
+                aria-describedby="people-error"
+                autocomplete="off"
+              />
+              <button class="stepper-btn" id="people-inc" aria-label="Increase people">+</button>
+            </div>
+            <div class="error-msg" id="people-error" role="alert" aria-live="polite">
+              ⚠ Must be at least 1 person
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Results -->
+      <div>
+        <div class="result-card" role="region" aria-label="Bill summary">
+          <div class="card-title">Summary</div>
+
+          <div id="result-content">
+            <div class="result-row">
+              <span class="result-label">Bill subtotal</span>
+              <span class="result-value" id="out-bill">Rs 0.00</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Tip amount</span>
+              <span class="result-value" id="out-tip">Rs 0.00</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Grand total</span>
+              <span class="result-value" id="out-total">Rs 0.00</span>
+            </div>
+
+            <div class="per-person-block" aria-live="polite" aria-atomic="true">
+              <div class="per-person-label">Each person pays</div>
+              <div class="per-person-amount" id="out-per-person">Rs 0.00</div>
+              <div class="per-person-sub" id="out-per-sub">—</div>
+            </div>
+
+            <p class="rounding-note" id="rounding-note" style="display:none">
+              Rounded up to nearest paisa — group never underpays.
+            </p>
+          </div>
+
+          <button class="reset-btn" id="reset-btn" aria-label="Reset all fields">↺ Reset</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Built with vanilla HTML / CSS / JS &nbsp;·&nbsp; SplitEase © 2025
+    </footer>
+  </div>
+
+  <script>
+    // ── State ──────────────────────────────────────────────────────────
+    let activeTipPct = null; // null = none selected
+    let customMode   = false;
+
+    // ── Elements ───────────────────────────────────────────────────────
+    const billInput    = document.getElementById('bill');
+    const tipCustom    = document.getElementById('tip-custom');
+    const peopleInput  = document.getElementById('people');
+    const peopleDec    = document.getElementById('people-dec');
+    const peopleInc    = document.getElementById('people-inc');
+    const customToggle = document.getElementById('custom-toggle');
+    const customWrap   = document.getElementById('custom-tip-wrap');
+    const tipBtns      = document.querySelectorAll('.tip-btn[data-tip]');
+
+    const outBill      = document.getElementById('out-bill');
+    const outTip       = document.getElementById('out-tip');
+    const outTotal     = document.getElementById('out-total');
+    const outPer       = document.getElementById('out-per-person');
+    const outPerSub    = document.getElementById('out-per-sub');
+    const roundNote    = document.getElementById('rounding-note');
+
+    const billErr      = document.getElementById('bill-error');
+    const tipErr       = document.getElementById('tip-error');
+    const peopleErr    = document.getElementById('people-error');
+
+    // ── Helpers ────────────────────────────────────────────────────────
+    function fmt(n) {
+      return 'Rs ' + n.toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function setError(input, errEl, msg, show) {
+      if (show) {
+        input.classList.add('error-field');
+        errEl.classList.add('visible');
+        if (msg) errEl.innerHTML = '⚠ ' + msg;
+      } else {
+        input.classList.remove('error-field');
+        errEl.classList.remove('visible');
+      }
+    }
+
+    function popAnimate(el) {
+      el.classList.remove('pop');
+      void el.offsetWidth;
+      el.classList.add('pop');
+    }
+
+    // ── Validation ─────────────────────────────────────────────────────
+    function validate() {
+      const rawBill   = billInput.value.trim();
+      const rawPeople = peopleInput.value.trim();
+      const rawTip    = customMode ? tipCustom.value.trim() : (activeTipPct !== null ? String(activeTipPct) : '');
+
+      const bill    = parseFloat(rawBill);
+      const people  = parseInt(rawPeople, 10);
+      const tipPct  = rawTip === '' ? null : parseFloat(rawTip);
+
+      let valid = true;
+
+      // Bill
+      if (rawBill === '' || isNaN(bill) || bill <= 0) {
+        if (rawBill !== '') {
+          setError(billInput, billErr, 'Enter a positive bill amount', true);
+          valid = false;
+        } else {
+          setError(billInput, billErr, '', false);
+        }
+      } else {
+        setError(billInput, billErr, '', false);
+      }
+
+      // Tip
+      if (customMode) {
+        if (rawTip === '') {
+          setError(tipCustom, tipErr, '', false);
+        } else if (isNaN(tipPct) || tipPct < 0 || tipPct > 100) {
+          setError(tipCustom, tipErr, 'Tip must be between 0% and 100%', true);
+          valid = false;
+        } else {
+          setError(tipCustom, tipErr, '', false);
+        }
+      }
+
+      // People
+      if (rawPeople === '' || isNaN(people) || people < 1 || !Number.isInteger(people)) {
+        setError(peopleInput, peopleErr, 'Must be at least 1 person', true);
+        valid = false;
+      } else {
+        setError(peopleInput, peopleErr, '', false);
+      }
+
+      return { valid, bill, people, tipPct };
+    }
+
+    // ── Core calc ──────────────────────────────────────────────────────
+    // Rounding policy: round UP each person's share to nearest paisa (0.01)
+    // so the group never underpays. The last row absorbs any remainder going
+    // the other way (it rounds down by 1 paisa if needed).
+    function calculate() {
+      const { valid, bill, people, tipPct } = validate();
+
+      if (!valid || isNaN(bill) || isNaN(people) || tipPct === null) {
+        outBill.textContent  = 'Rs 0.00';
+        outTip.textContent   = 'Rs 0.00';
+        outTotal.textContent = 'Rs 0.00';
+        outPer.textContent   = 'Rs 0.00';
+        outPerSub.textContent = '—';
+        roundNote.style.display = 'none';
+        return;
+      }
+
+      const tipAmt  = bill * (tipPct / 100);
+      const total   = bill + tipAmt;
+
+      // Round per-person UP to nearest paisa
+      const perRaw  = total / people;
+      const perUp   = Math.ceil(perRaw * 100) / 100;
+
+      outBill.textContent  = fmt(bill);
+      outTip.textContent   = fmt(tipAmt);
+      outTotal.textContent = fmt(total);
+
+      popAnimate(outPer);
+      outPer.textContent   = fmt(perUp);
+
+      if (people > 1) {
+        outPerSub.textContent = people + ' people × ' + fmt(perUp);
+        roundNote.style.display = (perUp * 100 !== Math.round(perRaw * 100)) ? 'block' : 'none';
+      } else {
+        outPerSub.textContent = 'Just you!';
+        roundNote.style.display = 'none';
+      }
+
+      peopleDec.disabled = (people <= 1);
+    }
+
+    // ── Tip preset buttons ─────────────────────────────────────────────
+    tipBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Deactivate all
+        tipBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+        customToggle.classList.remove('active');
+        customToggle.setAttribute('aria-pressed', 'false');
+
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+        activeTipPct = parseFloat(btn.dataset.tip);
+        customMode = false;
+        customWrap.classList.remove('visible');
+        tipCustom.value = '';
+        setError(tipCustom, tipErr, '', false);
+        calculate();
+      });
+    });
+
+    customToggle.addEventListener('click', () => {
+      tipBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+      customToggle.classList.add('active');
+      customToggle.setAttribute('aria-pressed', 'true');
+      activeTipPct = null;
+      customMode = true;
+      customWrap.classList.add('visible');
+      tipCustom.focus();
+      calculate();
+    });
+
+    // ── Stepper ────────────────────────────────────────────────────────
+    peopleDec.addEventListener('click', () => {
+      const v = parseInt(peopleInput.value, 10) || 1;
+      if (v > 1) { peopleInput.value = v - 1; calculate(); }
+      peopleDec.disabled = (parseInt(peopleInput.value, 10) <= 1);
+    });
+
+    peopleInc.addEventListener('click', () => {
+      const v = parseInt(peopleInput.value, 10) || 0;
+      if (v < 99) { peopleInput.value = v + 1; calculate(); }
+      peopleDec.disabled = false;
+    });
+
+    // ── Live inputs ────────────────────────────────────────────────────
+    billInput.addEventListener('input', calculate);
+    tipCustom.addEventListener('input', calculate);
+    peopleInput.addEventListener('input', () => {
+      const v = parseInt(peopleInput.value, 10);
+      peopleDec.disabled = (isNaN(v) || v <= 1);
+      calculate();
+    });
+
+    // Prevent non-numeric paste garbage becoming NaN silently
+    [billInput, tipCustom, peopleInput].forEach(inp => {
+      inp.addEventListener('paste', (e) => {
+        const pasted = (e.clipboardData || window.clipboardData).getData('text');
+        if (!/^-?\d*\.?\d*$/.test(pasted.trim())) {
+          e.preventDefault();
+        }
+      });
+    });
+
+    // ── Reset ──────────────────────────────────────────────────────────
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      billInput.value    = '';
+      tipCustom.value    = '';
+      peopleInput.value  = '1';
+      activeTipPct       = null;
+      customMode         = false;
+
+      tipBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-pressed', 'false'); });
+      customToggle.classList.remove('active');
+      customToggle.setAttribute('aria-pressed', 'false');
+      customWrap.classList.remove('visible');
+
+      [billInput, tipCustom, peopleInput].forEach(i => {
+        i.classList.remove('error-field');
+      });
+      [billErr, tipErr, peopleErr].forEach(e => e.classList.remove('visible'));
+      peopleDec.disabled = true;
+
+      outBill.textContent  = 'Rs 0.00';
+      outTip.textContent   = 'Rs 0.00';
+      outTotal.textContent = 'Rs 0.00';
+      outPer.textContent   = 'Rs 0.00';
+      outPerSub.textContent = '—';
+      roundNote.style.display = 'none';
+
+      billInput.focus();
+    });
+
+    // ── Keyboard: Enter moves focus forward ───────────────────────────
+    const focusOrder = [billInput, customToggle, tipCustom, peopleInput];
+    [billInput, tipCustom].forEach(inp => {
+      inp.addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          const i = focusOrder.indexOf(inp);
+          const next = focusOrder[i + 1];
+          if (next && next.offsetParent !== null) next.focus();
+        }
+      });
+    });
+
+    // Init
+    calculate();
+  </script>
+</body>
+</html>
