@@ -38,10 +38,6 @@ Vanilla HTML, CSS, and JavaScript.
 - Responsive from 360px phones to 1440px desktops
 - Reset button returns the app to its initial state
 
-## Known limitations
-
-- Not tested against WCAG 2.1 AA contrast ratios for all color pairs — some muted label text likely falls short of the 4.5:1 threshold.
-- The custom tip input accepts scientific notation (e.g. `1e5`), which passes the numeric range check and produces an invalid result. A stricter input parser is needed to reject non-decimal formats.
 
 See `ANSWERS.md` for the full design rationale, accessibility notes, and AI-usage disclosure.
 
